@@ -1,0 +1,49 @@
+{%- extends "layout.html" %}
+
+{%-set title = "Stav překladu" %}
+
+{% macro info(name) %}
+{% set group = github_docs[name] %}
+<div class="admonition-wrapper">
+  <div class="note"></div>
+  <div class="admonition admonition-note">
+    <p>Přeložených stránek: {{ group.count }} z {{ group.total_count }}
+        ({{ (100.0*group.count/group.total_count)|round(1) }} %)</p>
+    <p>Přeložený text: {{ group.size|human_size }} z {{ group.total_size|human_size }}
+        ({{ (100.0*group.size/group.total_size)|round(1) }} %)</p>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro list_files(name) %}
+<table class="docutils">
+  <thead valign="bottom">
+    <tr>
+      <th class="head">Stránka</th>
+      <th class="head">%</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% set total_size = github_docs[name].total_size %}
+    {% set total_size_all = github_docs['__all__'].total_size %}
+    {% for file, data in github_docs[name].files.iteritems() if not data.exists %}
+    <tr>
+        <td><a href="{{ pathto(file) }}">{{ file }}</a></td>
+        <td>{{ (100.0*data.size/total_size_all)|round(1) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+{% block body %}
+
+{%- for name, data in github_docs.iteritems() %}
+  {% if name != '__all__' %}<h2>{{ name }}</h2>{% endif %}
+
+  {{ info(name) }}
+
+  {% if name != '__all__' and data.count < data.total_count %}{{ list_files(name) }}{% endif %}
+{% endfor %}
+
+{% endblock %}

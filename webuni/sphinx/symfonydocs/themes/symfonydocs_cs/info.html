@@ -1,0 +1,12 @@
+<div class="feedback">
+  <h2 class="title_05">Informace</h2>
+  <p>
+    {% if translated %}
+    <em>Obsahuje dokumentace chybu?</em><br />
+    <a href="https://github.com/{{ github_repository }}/edit/{{ github_branch }}/{{ pagename }}.rst">Opravte ji</a> prosím.
+    {% else %}
+    <em>Stránka není přeložena.</em><br />
+    Můžete ji <a href="http://github.com/{{ github_repository }}/new/{{ github_branch }}/{{ pagename|dirname|urlencode }}?filename={{ pagename|basename|urlencode }}.rst">přeložit</a>!
+    {% endif %}
+  </p>
+</div>

@@ -1,0 +1,7 @@
+<div class="breadcrumb">
+    <a href="{{ pathto(master_doc) }}">Obsah</a> »
+    {%- for parent in parents %}
+    <a href="{{ parent.link|e }}" {%- if loop.last %}{{ accesskey("U") }}{%- endif %}>{{ parent.title }}</a> »
+    {%- endfor %}
+    {{ title }}
+</div>

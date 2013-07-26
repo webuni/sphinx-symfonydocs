@@ -1,0 +1,15 @@
+{%- extends "layout.html" %}
+
+{% block body %}
+  {% if not translated %}
+  <div class="admonition-wrapper">
+  <div class="caution"></div>
+  <div class="admonition admonition-caution">
+    <p class="first">Stránka není přeložena. Můžete ji
+        <a href="http://github.com/{{ github_repository }}/new/{{ github_branch }}/{{ pagename|dirname|urlencode }}?filename={{ pagename|basename|urlencode }}.rst">přeložit</a>!</p>
+  </div>
+  </div>
+  {% endif %}
+
+  {{ body }}
+{% endblock %}

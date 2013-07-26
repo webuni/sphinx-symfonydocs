@@ -1,0 +1,123 @@
+{%- block doctype -%}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{%- endblock %}
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset={{ encoding }}" />
+    {{ metatags }}
+    {%- block htmltitle %}
+    <title>{{ title|striptags|e }}{{ titlesuffix }}</title>
+    {%- endblock %}
+    <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
+    <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
+    {%- if not embedded %}
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '{{ url_root }}',
+        VERSION:     '{{ release|e }}',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '{{ '' if no_search_suffix else file_suffix }}',
+        HAS_SOURCE:  {{ has_source|lower }}
+      };
+    </script>
+    {%- for scriptfile in script_files %}
+    <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script>
+    {%- endfor %}
+    <script type="text/javascript" src="{{ pathto('_static/script.js', 1) }}"></script>
+    {%- if use_opensearch %}
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="{% trans docstitle=docstitle|e %}Search within {{ docstitle }}{% endtrans %}"
+          href="{{ pathto('_static/opensearch.xml', 1) }}"/>
+    {%- endif %}
+    {%- if favicon %}
+    <link rel="shortcut icon" href="{{ pathto('_static/' + favicon, 1) }}"/>
+    {%- endif %}
+    {%- endif %}
+{%- block linktags %}
+    {%- if hasdoc('about') %}
+    <link rel="author" title="{{ _('About these documents') }}" href="{{ pathto('about') }}" />
+    {%- endif %}
+    {%- if hasdoc('genindex') %}
+    <link rel="index" title="{{ _('Index') }}" href="{{ pathto('genindex') }}" />
+    {%- endif %}
+    {%- if hasdoc('search') %}
+    <link rel="search" title="{{ _('Search') }}" href="{{ pathto('search') }}" />
+    {%- endif %}
+    {%- if hasdoc('copyright') %}
+    <link rel="copyright" title="{{ _('Copyright') }}" href="{{ pathto('copyright') }}" />
+    {%- endif %}
+    <link rel="top" title="{{ docstitle|e }}" href="{{ pathto('index') }}" />
+    {%- if parents %}
+    <link rel="up" title="{{ parents[-1].title|striptags|e }}" href="{{ parents[-1].link|e }}" />
+    {%- endif %}
+    {%- if next %}
+    <link rel="next" title="{{ next.title|striptags|e }}" href="{{ next.link|e }}" />
+    {%- endif %}
+    {%- if prev %}
+    <link rel="prev" title="{{ prev.title|striptags|e }}" href="{{ prev.link|e }}" />
+    {%- endif %}
+{%- endblock %}
+{%- block extrahead %} {% endblock %}
+  </head>
+  <body>
+    <div id="content_wrapper">
+      <div class="content">
+        {%- block header %}
+        <div class="header">
+          <div class="content_header clear_fix">
+            <div class="illustration_logo_header">
+              <a href="{{ pathto('index') }}"><img src="{{ pathto('_static/logo_symfony_header.png', 1) }}" alt="Symfony" class="png_fix" /></a><br />
+              Česká dokumentace Symfony 2.x
+            </div>
+            {%- include "searchbox.html" %}
+          </div>
+        </div>
+        {% endblock %}
+
+        <div class="main_content">
+          <div class="box_columns clear_fix">
+            <div class="column_01">
+              {%- include "menu.html" %}
+              {%- include "info.html" %}
+              {%- include "localtoc.html" %}
+              {%- include "license.html" %}
+            </div>
+            <div class="column_02">
+              {%- block content %}
+              {% include "breadcrumb.html" %}
+              <div class="box_title">
+                <h1 class="title_01">{{ title }}</h1>
+              </div>
+              <div class="box_article doc_page">
+                {% block body %} {% endblock %}
+              </div>
+              <div class="navigation">
+              {% include "relations.html" %}
+              </div>
+              <div class="box_hr"><hr /></div>
+              {%- endblock %}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div class="content">
+          <h2 class="title_02">
+            <img src="{{ pathto('_static/logo_sf.png', 1) }}" alt="sf - Symfony" class="illustration_logo_footer png_fix" />
+            je ochranná známka vlastněná Fabienem Potencierem. Všechna práva vyhrazena.
+          </h2>
+
+          <h2 class="title_02 webuni">
+            <a href="http://webuni.cz" title="Webová univerzita">
+              <img src="{{ pathto('_static/webuni_logo.png', 1) }}" alt="Webová univerzita" class="illustration_logo_footer png_fix" />
+            </a>
+          </h2>
+        </div>
+      </div>
+    </div>
+    <a href="http://github.com/webuni/symfony-docs-cs">
+      <img style="position: fixed; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub">
+    </a>
+  </body>
+</html>

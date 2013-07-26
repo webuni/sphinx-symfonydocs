@@ -1,0 +1,9 @@
+{%- if prev %}
+<a href="{{ prev.link|e }}" accesskey="P" title="{{ _('previous chapter') }}">«&nbsp;{{ prev.title }}</a>
+{%- endif %}
+{%- if prev and next %}
+<span class="separator"> | </span>
+{%- endif %}
+{%- if next %}
+<a href="{{ next.link|e }}" accesskey="N" title="{{ _('next chapter') }}">{{ next.title }}&nbsp;»</a>
+{%- endif %}
