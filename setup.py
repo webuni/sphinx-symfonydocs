@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'webuni.sphinx.symfonydocs',
-    version = '0.8.1',
+    version = '0.8.2',
     author = u'Martin Hasoň',
     author_email = 'martin.hason@gmail.com',
     description = 'Webuni Sphinx extension for Symfony documentation',

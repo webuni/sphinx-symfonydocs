@@ -72,18 +72,15 @@ class GithubDocs(object):
         self.groups[group]['files'][path] = { 'exists': exists, 'size': size }
 
 class GithubDoc(object):
-    required_keys = ['group_name', 'repository', 'target_path']
-    last_commit_date = None
-    missing_files = None
-    missing_rst_files = None
-
     def __init__(self, config, srcdir, statistics):
         self.set_config(config)
         self.srcdir = srcdir
         self.statistics = statistics
+        self.missing_files = []
+        self.missing_rst_files = []
 
     def set_config(self, config):
-        missing_keys = list(set(self.required_keys) - set(config.keys()))
+        missing_keys = list(set(['group_name', 'repository', 'target_path']) - set(config.keys()))
         if missing_keys:
             raise GithubDocConfigException(missing_keys)
 
@@ -121,23 +118,15 @@ class GithubDoc(object):
         return copied
 
     def _get_last_commit_date(self):
-        if self.last_commit_date == None:
-            self.last_commit_date = datetime.now()
-
-            url = 'https://api.github.com/repos/{0}/commits'.format(self.config['repository'])
-            try:
-                r = get(url, params={'sha': self.config['sha'], 'path': self.config['source_path'], 'per_page': 1})
-                r.raise_for_status
-                self.last_commit_date = datetime.strptime(r.json()[0]['commit']['committer']['date'][0:19], '%Y-%m-%dT%H:%M:%S')
-            except:
-                pass
-
-        return self.last_commit_date
+        url = 'https://api.github.com/repos/{0}/commits'.format(self.config['repository'])
+        try:
+            r = get(url, params={'sha': self.config['sha'], 'path': self.config['source_path'], 'per_page': 1})
+            r.raise_for_status
+            return datetime.strptime(r.json()[0]['commit']['committer']['date'][0:19], '%Y-%m-%dT%H:%M:%S')
+        except:
+            return datetime.now()
 
     def init_github_info(self):
-        self.missing_files = []
-        self.missing_rst_files = []
-
         r = get('https://api.github.com/repos/{0}/git/trees/{1}'.format(self.config['repository'], self.config['sha']), params={'recursive': 1})
         r.raise_for_status()
 
@@ -188,15 +177,14 @@ def merge_github_docs(app):
         except Exception, e:
             app.warn('Error during analyzing documentation: '+str(e))
 
-        missing_files = doc.missing_files
-        missing_github_rst_files += doc.missing_rst_files
-
-        if len(missing_files) == 0:
+        if len(doc.missing_files) == 0:
             continue
 
-        app.info('merging {0:d} file(s) from http://github.com/{1} to {2}'.format(len(missing_files), config['repository'], config['target_path']))
+        missing_github_rst_files += doc.missing_rst_files
+
+        app.info('merging {0:d} file(s) from http://github.com/{1} to {2}'.format(len(doc.missing_files), config['repository'], config['target_path']))
         try:
-            merged_github_files += doc.copy_files(missing_files)
+            merged_github_files += doc.copy_files(doc.missing_files)
         except Exception, e:
             app.warn('Error during copying files: '+str(e))
 
