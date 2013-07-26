@@ -91,18 +91,6 @@ class GithubDoc(object):
         for key in ('source_path', 'target_path'):
             self.config[key] = (self.config[key].rstrip('/')+'/').lstrip('/')
 
-    def get_missing_files(self):
-        if self.missing_files == None:
-            self._process_git_tree()
-
-        return self.missing_files
-
-    def get_missing_rst_files(self):
-        if self.missing_rst_files == None:
-            self._process_git_tree()
-
-        return self.missing_rst_files
-
     def copy_files(self, files):
         zip_url = 'https://github.com/{0}/archive/{1}.zip'.format(self.config['repository'], self.config['sha'])
         zip_path = '{0}/{1}-{2}.zip'.format(gettempdir(), self.config['repository'].replace('/', '-'), self.config['sha'])
@@ -146,15 +134,12 @@ class GithubDoc(object):
 
         return self.last_commit_date
 
-    def _process_git_tree(self):
+    def init_github_info(self):
         self.missing_files = []
         self.missing_rst_files = []
 
-        try:
-            r = get('https://api.github.com/repos/{0}/git/trees/{1}'.format(self.config['repository'], self.config['sha']), params={'recursive': 1})
-            r.raise_for_status()
-        except:
-            return
+        r = get('https://api.github.com/repos/{0}/git/trees/{1}'.format(self.config['repository'], self.config['sha']), params={'recursive': 1})
+        r.raise_for_status()
 
         slice_from = len(self.config['source_path'])
         for element in r.json()['tree']:
@@ -198,8 +183,13 @@ def merge_github_docs(app):
         config = doc.config
         app.info('analyzing documentation from http://github.com/{0}'.format(config['repository']))
 
-        missing_files = doc.get_missing_files()
-        missing_github_rst_files += doc.get_missing_rst_files()
+        try:
+            doc.init_github_info()
+        except Exception, e:
+            app.warn('Error during analyzing documentation: '+str(e))
+
+        missing_files = doc.missing_files
+        missing_github_rst_files += doc.missing_rst_files
 
         if len(missing_files) == 0:
             continue
@@ -231,7 +221,8 @@ def fix_nodes(app, doctree, docname):
 
     for node in doctree.traverse(addnodes.versionmodified):
         inline = node.next_node(nodes.inline)
-        inline['classes'] = ['versionmodified']
+        if None != inline:
+            inline['classes'] = ['versionmodified']
 
 def register_jinja_filters(app):
     if hasattr(app.builder.templates, 'environment'):
