@@ -6,12 +6,9 @@ from sphinx.writers.html import HTMLTranslator
 from sphinx.util import docname_join
 from pygments.lexers import get_lexer_by_name
 from os import path, remove, makedirs
-from requests import get, RequestException
-from urllib import urlretrieve
-from tempfile import gettempdir
-from zipfile import ZipFile
 from datetime import datetime
 from collections import OrderedDict
+from git import Repo
 from sensio.sphinx import refinclude, phpcode, configurationblock
 
 class SymfonyHTMLTranslator(HTMLTranslator):
@@ -72,12 +69,14 @@ class GithubDocs(object):
         self.groups[group]['files'][path] = { 'exists': exists, 'size': size }
 
 class GithubDoc(object):
-    def __init__(self, config, srcdir, statistics):
+    def __init__(self, config, srcdir, targetdir, statistics):
         self.set_config(config)
         self.srcdir = srcdir
         self.statistics = statistics
         self.missing_files = []
         self.missing_rst_files = []
+        self.repository_url = 'https://github.com/{0}'.format(self.config['repository'])
+        self.repository_dir = path.join(targetdir, self.config['repository'])
 
     def set_config(self, config):
         missing_keys = list(set(['group_name', 'repository', 'target_path']) - set(config.keys()))
@@ -127,6 +126,21 @@ class GithubDoc(object):
             return datetime.now()
 
     def init_github_info(self):
+        if not path.exists(self.repository_dir):
+            makedirs(self.repository_dir)
+        try:
+            Repo.clone_from(self.repository_url, self.repository_dir)
+        except:
+            pass
+
+        repo = Repo(self.repository_dir);
+        origin = repo.remotes.origin
+        origin.fetch()
+        #repo.git.checkout('origin/{0}'.format(self.config['sha']))
+        print(repo)
+        exit()
+
+
         r = get('https://api.github.com/repos/{0}/git/trees/{1}'.format(self.config['repository'], self.config['sha']), params={'recursive': 1})
         r.raise_for_status()
 
@@ -162,16 +176,21 @@ github_docs = GithubDocs()
 def merge_github_docs(app):
     global merged_github_files, missing_github_rst_files, github_docs
 
+    targetdir = app.builder.config.github_dir
+    if not path.isabs(targetdir):
+        targetdir = path.join(app.srcdir, targetdir)
+
     for config in app.builder.config.github_docs:
         try:
-            doc = GithubDoc(config, app.srcdir, github_docs)
+            doc = GithubDoc(config, app.srcdir, targetdir, github_docs)
         except GithubDocConfigException, e:
             app.warn('Missing keys "'+'", "'.join(e.missing_keys)+'" in "github_doc" configuration: '+str(config))
             continue
 
         config = doc.config
-        app.info('analyzing documentation from http://github.com/{0}'.format(config['repository']))
+        app.info('analyzing documentation from {0}'.format(doc.repository_url))
 
+        doc.init_github_info()
         try:
             doc.init_github_info()
         except Exception, e:
@@ -182,7 +201,7 @@ def merge_github_docs(app):
 
         missing_github_rst_files += doc.missing_rst_files
 
-        app.info('merging {0:d} file(s) from http://github.com/{1} to {2}'.format(len(doc.missing_files), config['repository'], config['target_path']))
+        app.info('merging {0:d} file(s) from {1} to {2}'.format(len(doc.missing_files), doc.repository_url, config['target_path']))
         try:
             merged_github_files += doc.copy_files(doc.missing_files)
         except Exception, e:
@@ -248,4 +267,5 @@ def setup(app):
     app.config.html_translator_class = "webuni.sphinx.symfonydocs.SymfonyHTMLTranslator"
     app.config.html_additional_pages['translation'] = 'translation.html'
 
+    app.add_config_value('github_dir', 'github_repositories', '')
     app.add_config_value('github_docs', [], '')

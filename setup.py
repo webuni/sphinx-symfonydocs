@@ -16,8 +16,8 @@ setup(
     install_requires = [
         'Sphinx>=1.1',
         'Jinja2>=2.7',
-        'requests>=1.0',
-        'sphinx-php>=1.0'
+        'sphinx-php>=1.0',
+        'gitpython>=0.1'
     ],
     dependency_links = [
         'https://github.com/fabpot/sphinx-php/archive/master.zip#egg=sphinx-php-1.0'
